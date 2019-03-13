@@ -1,0 +1,80 @@
+<html>
+<head>
+  <!-- <script type="text/javascript" src="/js/imagenet_classes.js"></script>  -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script>
+  let model;
+
+  $(document).ready(()=>{
+    loadModel()
+    $("#select-file-image").change(function() {
+      renderImage(this.files[0]);
+    })
+  })
+
+  function renderImage(file) {
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      img_url = event.target.result;
+      document.getElementById("test-image").src = img_url;
+    }
+    reader.readAsDataURL(file);
+  }
+
+  async function loadModel() {
+    modelName = "mobilenet";
+    model = undefined;
+    model = await tf.loadLayersModel('/tfjsmodel/model.json');
+    console.log("model loaded..");
+  }
+
+    // preprocess the image to be mobilenet friendly
+  function preprocessImage(image, modelName) {
+
+    // resize the input image to mobilenet's target size of (224, 224)
+    let tensor = tf.browser.fromPixels(image)
+      .resizeNearestNeighbor([224, 224])
+      .toFloat();
+
+    // if model is not available, send the tensor with expanded dimensions
+    if (modelName === undefined) {
+      return tensor.expandDims();
+    }
+
+    // if model is mobilenet, feature scale tensor image to range [-1, 1]
+    else if (modelName === "mobilenet") {
+      let offset = tf.scalar(127.5);
+      return tensor.sub(offset)
+        .div(offset)
+        .expandDims();
+    }
+
+    // else throw an error
+    else {
+      alert("Unknown model name..")
+    }
+  }
+
+  predict = async ()=>{
+    if (model == undefined) {
+      alert("Please load the model first..")
+    }
+
+    // html-image element can be given to tf.fromPixels
+    let image  = document.getElementById("test-image");
+    let tensor = preprocessImage(image, modelName);
+
+    // make predictions on the preprocessed image tensor
+    let predictions = await model.predict(tensor).data();
+    console.log(predictions)
+  }
+
+  </script>
+</head>
+<body>
+  <input id="select-file-image" type="file">
+  <img id="test-image"/>
+  <button id="predict-button" onclick="predict()">Predict</button>
+</body>
+</html>
