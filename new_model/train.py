@@ -2,6 +2,7 @@ import os
 import sys
 import keras
 import numpy as np
+from tqdm import tqdm
 import tensorflow as tf
 import keras.backend as K
 import tensorflowjs as tfjs
@@ -38,24 +39,6 @@ model.add(Activation('softmax'))
 
 model.compile(loss='sparse_categorical_crossentropy',optimizer='Adam', metrics=['accuracy'])
 
-# model = Sequential()
-# model.add(Convolution2D(32, (3, 3), input_shape=(img_width, img_height,3)))
-# model.add(Activation('relu'))
-# model.add(MaxPooling2D(pool_size=(2, 2)))
-# model.add(Convolution2D(32, (3, 3)))
-# model.add(Activation('relu'))
-# model.add(keras.layers.MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None))
-# model.add(Convolution2D(64, (3, 3)))
-# model.add(Activation('relu'))
-# model.add(MaxPooling2D(pool_size=(2, 2)))
-# model.add(Flatten())
-# model.add(Dense(64))
-# model.add(Activation('relu'))
-# model.add(Dropout(0.5))
-# model.add(Dense(70))
-# model.add(Activation('sigmoid'))
-# model.compile(loss='sparse_categorical_crossentropy',optimizer='rmsprop',metrics=['accuracy'])
-
 def startTraining():
     train_data_dir = '/home/apoorv/Desktop/apps/liveclinic/new_model/training_data'
     validation_data_dir = '/home/apoorv/Desktop/apps/liveclinic/new_model/validation_data'
@@ -67,6 +50,7 @@ def startTraining():
     nb_train_samples = 10
     nb_validation_samples = 10
 
+    # model.load_weights('working_model.h5')
     model.fit_generator(train_generator,samples_per_epoch=nb_train_samples,epochs=nb_epoch,validation_data=validation_generator,validation_steps=nb_validation_samples)
 
     print ("Loaded")
@@ -77,33 +61,50 @@ def startTraining():
 
 def startPredicting():
     model.load_weights('working_model.h5')
+    classes = ["medicine strip","pill bottle",'pill']
 
-    path_arr = [
-    '/home/apoorv/Desktop/apps/liveclinic/new_model/testing_data/medicine_strip/medicine_strip.jpeg',
-    '/home/apoorv/Desktop/apps/liveclinic/new_model/testing_data/medicine_strip/IMG_20190312_214207.jpg',
-    '/home/apoorv/Desktop/apps/liveclinic/new_model/testing_data/pill_bottle/Z.jpg',
-    '/home/apoorv/Desktop/apps/liveclinic/new_model/testing_data/pill_bottle/pill_btle.jpeg',
-    ]
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    medicine_strip_testing_data_path = dir_path+"/testing_data/medicine_strip"
+    pill_bottle_testing_path = dir_path + "/testing_data/pill_bottle/"
 
-    classes = ["medicine strip","pill bottle",'pill]']
+    print("------------------------------")
+    print("SCANNING MEDICINE STRIP FOLDER")
+    print("------------------------------")
 
-    for img_path in path_arr:
-        img=mpimg.imread(img_path)
-        imgplot = plt.imshow(img)
-        print("SHOWING IMAGE")
+    for img in os.listdir(medicine_strip_testing_data_path):
+        image_full_path = medicine_strip_testing_data_path+"/"+img
+        print("------------------------------")
+        read_img = mpimg.imread(image_full_path)
+        imgplot = plt.imshow(read_img)
         plt.show()
-        img = image.load_img(img_path, target_size=(img_width,img_height))
-        x = image.img_to_array(img)
+        img1 = image.load_img(image_full_path, target_size=(img_width,img_height))
+        x = image.img_to_array(img1)
         x = np.expand_dims(x,axis=0)
         x /=255
         predicted_classes = model.predict_classes(x)
-        print("THAT WAS",classes[predicted_classes[0]])
+        print("THAT WAS ======>",classes[predicted_classes[0]])
+
+    print("------------------------------")
+    print("SCANNING PILL BOTTLE FOLDER")
+    print("------------------------------")
+
+    for img in os.listdir(pill_bottle_testing_path):
+        image_full_path = pill_bottle_testing_path+"/"+img
+        print("------------------------------")
+        read_img = mpimg.imread(image_full_path)
+        imgplot = plt.imshow(read_img)
+        plt.show()
+        img1 = image.load_img(image_full_path, target_size=(img_width,img_height))
+        x = image.img_to_array(img1)
+        x = np.expand_dims(x,axis=0)
+        x /=255
+        predicted_classes = model.predict_classes(x)
+        print("THAT WAS ======>",classes[predicted_classes[0]])
 
 def convert():
     print("Converting...")
     model.load_weights('working_model.h5')
     tfjs.converters.save_keras_model(model, "tfjsmodel.json")
-
 
 if(len(sys.argv) > 1 ):
     program_name = sys.argv[1]
@@ -114,4 +115,4 @@ if(len(sys.argv) > 1 ):
     if(program_name == "convert"):
         convert()
 else:
-    print ("PLEASE SEND TASK (train or predict) for example python train.py train")
+    print ("PLEASE SEND TASK (train or predict or convert) for example python train.py train")
