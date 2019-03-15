@@ -46,7 +46,7 @@ def startTraining():
     validation_datagen = ImageDataGenerator(rescale=1./255,rotation_range=30,width_shift_range=0.2,shear_range=0.2,zoom_range=0.5,horizontal_flip=True,vertical_flip=True)
     train_generator = train_datagen.flow_from_directory(train_data_dir,target_size=(img_width, img_height),batch_size=6,class_mode='binary')
     validation_generator = validation_datagen.flow_from_directory(validation_data_dir,target_size=(img_width, img_height),batch_size=3,class_mode='binary')
-    nb_epoch = 50
+    nb_epoch = 100
     nb_train_samples = 10
     nb_validation_samples = 10
 
@@ -61,11 +61,12 @@ def startTraining():
 
 def startPredicting():
     model.load_weights('working_model.h5')
-    classes = ["medicine strip","pill bottle",'pill']
+    classes = ["medicine strip",'paper',"pill bottle"]
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     medicine_strip_testing_data_path = dir_path+"/testing_data/medicine_strip"
     pill_bottle_testing_path = dir_path + "/testing_data/pill_bottle/"
+    paper_testing_path = dir_path + "/testing_data/paper/"
 
     print("------------------------------")
     print("SCANNING MEDICINE STRIP FOLDER")
@@ -90,6 +91,23 @@ def startPredicting():
 
     for img in os.listdir(pill_bottle_testing_path):
         image_full_path = pill_bottle_testing_path+"/"+img
+        print("------------------------------")
+        read_img = mpimg.imread(image_full_path)
+        imgplot = plt.imshow(read_img)
+        plt.show()
+        img1 = image.load_img(image_full_path, target_size=(img_width,img_height))
+        x = image.img_to_array(img1)
+        x = np.expand_dims(x,axis=0)
+        x /=255
+        predicted_classes = model.predict_classes(x)
+        print("THAT WAS ======>",classes[predicted_classes[0]])
+
+    print("------------------------------")
+    print("SCANNING PAPER FOLDER")
+    print("------------------------------")
+
+    for img in os.listdir(paper_testing_path):
+        image_full_path = paper_testing_path+"/"+img
         print("------------------------------")
         read_img = mpimg.imread(image_full_path)
         imgplot = plt.imshow(read_img)
