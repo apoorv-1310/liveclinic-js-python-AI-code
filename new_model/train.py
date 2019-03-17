@@ -60,7 +60,7 @@ def startTraining():
     print("ALL GOOD TILL NOW")
 
 def startPredicting():
-    model.load_weights('working_model.h5')
+    # model.load_weights('working_model.h5')
     classes = ["medicine strip",'paper',"pill bottle"]
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -122,7 +122,7 @@ def startPredicting():
 def convert():
     print("Converting...")
     model.load_weights('working_model.h5')
-    tfjs.converters.save_keras_model(model, "tfjsmodel.json")
+    tfjs.converters.save_keras_model(model, "tfjsmodel")
 
 if(len(sys.argv) > 1 ):
     program_name = sys.argv[1]
